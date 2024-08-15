@@ -100,3 +100,22 @@ class ContactAPIView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Contact.DoesNotExist:
             return Response({'error': 'Контакт не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+#Добавил функционал офрмления заказа 
+class OrderAPIView(APIView):
+    def post(self, request):
+        user = request.user
+        cart_items = Cart.objects.filter(user=user)
+
+        if not cart_items:
+            return Response({'error': 'Корзина пуста'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order = Order.objects.create(user=user)
+
+        for item in cart_items:
+            OrderItem.objects.create(order=order, product=item.product, quantity=item.quantity)
+
+        cart_items.delete()  # Очистить корзину после создания заказа
+
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
