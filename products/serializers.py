@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Product, Cart, Contact
+from .models import Product, Cart, Contact, Order 
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,3 +26,16 @@ class ContactSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         contact = Contact.objects.create(user=user, **validated_data)
         return contact
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['user', 'items', 'created_at', 'status']
